@@ -1,16 +1,45 @@
+import log, { error } from 'npmlog';
 import express from 'express';
 import path from 'path';
-
 import ServerController from './controller/ServerController';
-import { getBinPath } from './util/path-util';
+import setup from './setup';
+import testFunc from './test'
 
+console.log(`
+  ██████╗ ███████╗ ██╗  ██╗  █████╗  ██╗    
+ ██╔════╝ ██╔════╝ ██║ ██╔╝ ██╔══██╗ ██║    
+ ╚█████╗  █████╗   █████═╝  ███████║ ██║    
+  ╚═══██╗ ██╔══╝   ██╔═██╗  ██╔══██║ ██║    
+ ██████╔╝ ███████╗ ██║ ╚██╗ ██║  ██║ ██║ ██╗
+ ╚═════╝  ╚══════╝ ╚═╝  ╚═╝ ╚═╝  ╚═╝ ╚═╝ ╚═╝
+                            Version 0.1\n
+`);
+
+/* Setup logging */
+log.enableColor();
+log.heading = 'sekai';
+log.headingStyle = {
+  fg: 'grey',
+  bold:true,
+};
+
+/* Setup dirs */
+log.info('', 'Setting up files');
+setup();
+
+/* Setup HTTP server */
+log.info('', 'Setting up HTTP server');
 const server = express();
 
-server.use(express.static(path.join(__dirname, '../view/build')));
+const staticPath = path.join(__dirname, 'static');
+log.info('debug', `Static: ${staticPath}`);
 
+server.use(express.json());
+server.use(express.static(staticPath));
 server.use(ServerController);
 
-const PORT = process.env.PORT || 5420;
-server.listen(PORT, () => {
-  console.log(`Running @ ${PORT}`);
+const port = process.env.SEKAI_PORT || 5420;
+server.listen(port, async () => {
+  log.info('', `Done! Visit http://localhost:${port} in your browser.`);
+  testFunc(true);
 });

@@ -1,4 +1,6 @@
-import {IServer} from "../model/IServer";
+import { IProperties } from "../model/IProperties";
+import { IServer } from "../model/IServer";
+import {IServerIni} from "../model/IServerIni";
 
 interface IServerServiceAlpha {
 
@@ -14,7 +16,7 @@ interface IServerServiceAlpha {
     port: number,
     ramUsage?: string,
     description?: string,
-    properties?: string,
+    properties?: IProperties,
   ): void;
 
 
@@ -24,11 +26,12 @@ interface IServerServiceAlpha {
 
 
   update(
+    serverId: string,
     name: string,
     description?: string,
     port?: number,
     ramUsage?: string,
-    properties?: string,
+    properties?: IProperties,
   ): void;
 
 

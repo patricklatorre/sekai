@@ -1,21 +1,42 @@
 {
-  "name": "sekai-server",
+  "name": "sekai",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
+  "bin": "index.js",
+  "pkg": {
+    "assets": "static/**/*",
+    "targets": [
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ],
+    "outputPath": "build"
+  },
   "scripts": {
     "start": "tsc && node index.js",
-    "package": "tsc && pkg -C GZip -o build/sekai -t node16-linux-x64,node16-macos-x64,node16-win-x64 index.js"
+    "copy-static": "copyfiles -u 3 \"../view/build/**/*\" static",
+    "package": "tsc && npm run copy-static && pkg . -C Brotli"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/ini": "^1.3.31",
+    "child-process-promise": "^2.2.1",
     "express": "^4.17.2",
+    "fs-extra": "^10.0.0",
+    "ini": "^2.0.0",
+    "npmlog": "^6.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/child-process-promise": "^2.2.2",
     "@types/express": "^4.17.13",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^17.0.15",
+    "@types/npmlog": "^4.1.4",
     "@types/uuid": "^8.3.4",
+    "copyfiles": "^2.4.1",
     "pkg": "^5.5.2",
     "typescript": "^4.5.5"
   }

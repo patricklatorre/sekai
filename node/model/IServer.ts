@@ -1,19 +1,7 @@
+import { IProperties } from "./IProperties";
+import { IServerIni } from "./IServerIni";
+
 export interface IServer {
-
-  id: string;
-
-  name: string;
-
-  templateId: string;
-
-  templateName: string;
-
-  port: number;
-
-  ramUsage: string;
-
-  description: string;
-
-  properties: any;
-
+  ini: IServerIni;
+  props: IProperties;
 }
