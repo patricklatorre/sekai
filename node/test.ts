@@ -1,7 +1,7 @@
 import log, { error } from 'npmlog';
 import express from 'express';
 import path from 'path';
-import FilesDao from './dao/FilesDao';
+import ServerService from './service/ServerService';
 import setup from './setup';
 import { IServerIni } from './model/IServerIni';
 import { IServer } from './model/IServer';
@@ -12,7 +12,7 @@ async function testFunc(runTest: boolean) {
     return;
   }
 
-  const filesDao = new FilesDao();
+  const filesDao = new ServerService();
 
   const testSrvs: IServer[] = [
     {

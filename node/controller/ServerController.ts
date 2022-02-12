@@ -1,24 +1,19 @@
 import {Router} from 'express';
-import FilesDao from '../dao/FilesDao';
-import { IFilesDao } from '../dao/IFilesDao';
-import { IServer } from '../model/IServer';
-import { IServerIni } from '../model/IServerIni';
-import IServerServiceAlpha from '../service/IServerServiceAlpha';
 import ServerService from '../service/ServerService';
+import { IServer } from '../model/IServer';
 import * as paths from '../util/PathUtil';
+import { IServerService } from '../service/IServerService';
 
 const router = Router();
 
-// const serverService: IServerServiceAlpha = new ServerService();
-
-const filesDao: IFilesDao = new FilesDao();
+const serverService: IServerService = new ServerService();
 
 router.post('/api/server', async (req, res, next) => {
   try {
 
     const srv = <IServer> req.body;
     console.dir(srv);
-    const result = await filesDao.createServer(srv.ini, srv.props);
+    const result = await serverService.createServer(srv.ini, srv.props);
     res.status(201).json(result);
 
   } catch (err) {
@@ -40,7 +35,7 @@ router.get('/api/server/:id', (req, res, next) => {
   try {
 
     const id  = req.params.id;
-    const srv = filesDao.getServer(id);
+    const srv = serverService.getServer(id);
     res.json(srv);
   
   } catch (err) {

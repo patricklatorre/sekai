@@ -12,7 +12,7 @@ export enum Gamemode {
   SPECTATOR = 3
 }
 
-export interface IProperties {
+export interface IServerProps {
   'allow-flight'                        ?: boolean;
   'allow-nether'                        ?: boolean;
   'broadcast-console-to-ops'            ?: boolean;
