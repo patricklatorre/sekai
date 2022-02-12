@@ -10,7 +10,7 @@ export interface IServer {
 
   port: number;
 
-  ramUsage: string;
+  usableRam: string;
 
   description: string;
 
