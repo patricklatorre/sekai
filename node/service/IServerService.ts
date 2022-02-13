@@ -10,6 +10,6 @@ export interface IServerService {
 
     getServer(srvId: string): IServer;
 
-    normalizeProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps;
+    applyUserProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps;
 
 }

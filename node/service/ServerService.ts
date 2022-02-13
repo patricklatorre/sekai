@@ -8,10 +8,13 @@ import {IServerService} from './IServerService';
 import {IServerIni} from '../model/IServerIni';
 import { IServerProps } from '../model/IServerProps';
 import { IServer } from '../model/IServer';
-
+import FileSys from '../dao/FileSys';
+import { IFileSys } from '../dao/IFileSys';
 
 
 class ServerService implements IServerService {
+
+  private fileSys: IFileSys = new FileSys();
 
   async createServer(ini: IServerIni, userProps?: IServerProps): Promise<IServer> {
 
@@ -20,6 +23,7 @@ class ServerService implements IServerService {
     /* Generate ID */
     ini.id = ini.name.replace(/[\W_]+/g, '').toLowerCase();
 
+    /* Validate usableRam value */
     const isValidUsableRam  = [512, 1024, 2048, 4096, 6144].includes(ini.usableRam);
 
     if (!isValidUsableRam) {
@@ -27,40 +31,24 @@ class ServerService implements IServerService {
       throw new Error(`Usable RAM "${ini.usableRam}" is invalid`);
     }
 
-    /* 1. CHECK IF PATHS EXISTS */
+
+    /* 0.2 CHECK IF JAVA VERSION EXISTS */
     const javaPath        = paths.getJavaBinPath(ini.javaName);
     const javaExists      = fs.existsSync(javaPath);
-
-    const tmplPath        = paths.getTemplatePath(ini.templateName);
-    const tmplExists      = fs.existsSync(tmplPath);
-
-    const srvPath         = paths.getServerPath(ini.id);
-    const srvExists       = fs.existsSync(srvPath);
-
+    
     if (!javaExists) {
       log.error(ini.id, `Java version doesn't exist: ${javaPath}`);
       throw new Error(`Java version "${ini.javaName}" doesn't exist.`);
     }
 
-    if (!tmplExists) {
-      log.error(ini.id, `Template doesn't exist: ${tmplPath}`);
-      throw new Error(`Template "${ini.templateName}" doesn't exist.`);
-    }
 
-    if (srvExists) {
-      log.error(ini.id, `Server ${ini.id} already exists.`);
-      throw new Error( `Server ID ${ini.id} already exists.`);
-    }
-
-
-    /* 2. COPY TEMPLATE CONTENT TO NEW SERVER DIR */
+    /* 1. COPY TEMPLATE FILES TO SERVER DIR */
     log.info(ini.id, 'Copying templates');
-    fs.mkdirSync(srvPath);
-    fs.copySync(tmplPath, srvPath);
+    await this.fileSys.copyTemplate(ini.id, ini.templateName);    
 
-
-    /* 3. GENERATE SEKAI INI FILE */
+    /* 2. GENERATE SEKAI INI FILE */
     log.info(ini.id, 'Generating sekai.ini file');
+
     const iniData: IServerIni = {
       /* NOTE: the ID is the directory name itself */
       id            : ini.id,
@@ -72,11 +60,12 @@ class ServerService implements IServerService {
       usableRam     : ini.usableRam,
     };
 
-    const iniPath = paths.getIniPath(ini.id);
-    fs.writeFileSync(iniPath, INI.stringify(iniData), 'utf-8');
+    await this.fileSys.saveIni(ini.id, iniData);
 
 
-    /* 4. CHECK IF EULA AND SERVER.JAR EXISTS */
+    /* 3. CHECK IF EULA AND SERVER.JAR EXISTS */
+    const srvPath       = paths.getServerPath(ini.id);
+
     const eulaPath      = paths.getEulaPath(ini.id);
     const eulaExists    = fs.existsSync(eulaPath);
 
@@ -84,37 +73,35 @@ class ServerService implements IServerService {
     const srvJarExists  = fs.existsSync(srvJarPath);
 
 
-    /* 5. IF NO EULA AND THERE IS A SERVER JAR. RUN ONCE TO GENERATE FILES. */
+    /* 4. IF NO EULA AND THERE IS A SERVER JAR. RUN ONCE TO GENERATE FILES. */
     if (!eulaExists && srvJarExists) {
+      // TODO: This portion should be done by the Runner
       log.info(ini.id, 'Generating server files');
 
-      /* 5.1. RUN SERVER.JAR ONCE */
+      /* 4.1. RUN SERVER.JAR ONCE */
       const cdCmd   = `cd ${srvPath}`;
       const runCmd  = `${javaPath} -Xmx${ini.usableRam}M -Xms${ini.usableRam}M -jar server.jar nogui`;
 
       await exec(`${cdCmd} && ${runCmd}`);
 
-      /* 5.2. ACCEPT EULA */
+      /* 4.2. ACCEPT EULA */
       log.info(ini.id, 'Accepting EULA');
-      const eulaText = fs.readFileSync(eulaPath, 'utf8')
-                         .replaceAll('false', 'true');
-
-      fs.writeFileSync(eulaPath, eulaText, 'utf8');
+      await this.fileSys.acceptEula(ini.id);
     }
 
-    /* 6.0. SET SERVER.PROPERTIES */
-    const srvPropsPath  = paths.getPropertiesPath(ini.id);
-    let srvProps        = INI.parse(fs.readFileSync(srvPropsPath, 'utf8')) as IServerProps;
-    srvProps            = this.normalizeProperties(srvProps, userProps);
+    /* 5.0. SET SERVER.PROPERTIES */
+    let defaultProps    = await this.fileSys.getProps(ini.id);
+    let finalProps      = this.applyUserProperties(defaultProps, userProps);
+    
+    await this.fileSys.saveProps(ini.id, finalProps);
 
-    fs.writeFileSync(srvPropsPath, INI.stringify(srvProps), 'utf8');
 
     /* Return sekai.ini data */
     log.info(ini.id, `Done!`);
     
     const result: IServer = {
       ini: iniData,
-      props: srvProps,
+      props: finalProps,
     };
 
     return result;
@@ -227,7 +214,7 @@ class ServerService implements IServerService {
    * Doesn't assume any default values for the server.properties.
    * It keeps the value from defaultProps.
    */
-  normalizeProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps {
+  applyUserProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps {
     if (userProps === undefined) {
       return defaultProps;
     }
