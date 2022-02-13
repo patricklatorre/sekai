@@ -123,10 +123,10 @@ class FileSys implements IFileSys {
   async saveIni(srvId: string, ini: IServerIni): Promise<void> {
     const path = paths.getIniPath(srvId);
 
-    if (!fs.existsSync(path)) {
-      log.error(srvId, `sekai.ini not found`);
-      throw new Error(`sekai.ini not found`);
-    }
+    // if (!fs.existsSync(path)) {
+    //   log.error(srvId, `sekai.ini not found`);
+    //   throw new Error(`sekai.ini not found`);
+    // }
 
     await fs.writeFile(path, INI.stringify(ini), 'utf8');
   }
@@ -150,12 +150,14 @@ class FileSys implements IFileSys {
   async saveProps(srvId: string, props: IServerProps): Promise<void> {
     const path = paths.getPropertiesPath(srvId);
 
-    if (!fs.existsSync(path)) {
-      log.error(srvId, `server.properties not found`);
-      throw new Error(`server.properties not found`);
-    }
+    // if (!fs.existsSync(path)) {
+    //   log.error(srvId, `server.properties not found`);
+    //   throw new Error(`server.properties not found`);
+    // }
 
     await fs.writeFile(path, INI.stringify(props), 'utf8');
   }
 
 }
+
+export default FileSys;

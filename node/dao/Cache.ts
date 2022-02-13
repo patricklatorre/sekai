@@ -14,39 +14,48 @@ class FileSysCache implements IMetadataStore {
     EncodingDown<string, IServer>(MemDown(), { valueEncoding: 'json' })
   );
 
-  listJavaNames(): string[] {
+
+  listJavaNames(): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
-
-  listServerIds(): string[] {
+  
+  
+  listServerIds(): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
-
-  listTemplateNames(): string[] {
+  
+  
+  listTemplateNames(): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
-
-  getServerMetadata(srvId: string): IServer {
+  
+  
+  getServerMetadata(srvId: string): Promise<IServer> {
     throw new Error("Method not implemented.");
   }
-
-  saveServerMetadata(srvId: string, srv: IServer): IServer {
+  
+  
+  saveServerMetadata(srvId: string, srv: IServer): Promise<void> {
     throw new Error("Method not implemented.");
   }
-
-  getIni(srvId: string): IServerIni {
+  
+  
+  getIni(srvId: string): Promise<IServerIni> {
     throw new Error("Method not implemented.");
   }
-
-  saveIni(srvId: string, ini: IServerIni): void {
+  
+  
+  saveIni(srvId: string, ini: IServerIni): Promise<void> {
     throw new Error("Method not implemented.");
   }
-
-  getProps(srvId: string): IServerProps {
+  
+  
+  getProps(srvId: string): Promise<IServerProps> {
     throw new Error("Method not implemented.");
   }
-
-  saveProps(srvId: string, props: IServerProps): void {
+  
+  
+  saveProps(srvId: string, props: IServerProps): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
