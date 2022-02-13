@@ -77,12 +77,12 @@ async function testFunc(runTest: boolean) {
 
       // Inject new ID
       testSrvs[i].ini.id = newSrv.ini.id;
-      log.info('debug', `id=${newSrv.ini.id}`);
+      // log.info('debug', `id=${newSrv.ini.id}`);
 
-      log.info('test', `Finished creating ${newSrv.ini.name}`);
+      log.info('create', `Finished creating ${newSrv.ini.name}`);
 
     } catch (err) {
-      log.error('test', ''+err);
+      log.error('', ''+err);
     }
   }
 

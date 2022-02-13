@@ -1,3 +1,6 @@
+/* Supress unnecessary expressjs logs */
+process.env.NODE_ENV = 'production';
+
 import log, { error } from 'npmlog';
 import express from 'express';
 import path from 'path';
