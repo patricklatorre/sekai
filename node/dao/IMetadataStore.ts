@@ -4,22 +4,22 @@ import { IServerProps } from "../model/IServerProps";
 
 export interface IMetadataStore {
 
-    listJavaNames(): string[];
+    listJavaNames(): Promise<string[]>;
 
-    listServerIds(): string[];
+    listServerIds(): Promise<string[]>;
   
-    listTemplateNames(): string[];
+    listTemplateNames(): Promise<string[]>;
   
-    getServerMetadata(srvId: string): IServer;
+    getServerMetadata(srvId: string): Promise<IServer>;
   
-    saveServerMetadata(srvId: string, srv: IServer): IServer;
+    saveServerMetadata(srvId: string, srv: IServer): Promise<void>;
     
-    getIni(srvId: string): IServerIni;
+    getIni(srvId: string): Promise<IServerIni>;
   
-    saveIni(srvId: string, ini: IServerIni): void;
+    saveIni(srvId: string, ini: IServerIni): Promise<void>;
     
-    getProps(srvId: string): IServerProps;
+    getProps(srvId: string): Promise<IServerProps>;
   
-    saveProps(srvId: string, props: IServerProps): void;
+    saveProps(srvId: string, props: IServerProps): Promise<void>;
 
 }
