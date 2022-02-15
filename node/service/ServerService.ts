@@ -109,7 +109,7 @@ class ServerService implements IServerService {
 
 
 
-  runServer(srvId: string): IServer {
+  runServer(srvId: string): Promise<IServer> {
 
     log.info(srvId, 'Fetching server files');
 
@@ -170,7 +170,7 @@ class ServerService implements IServerService {
   /** 
    * Get existing sekai-managed server. 
    */
-  getServer(srvId: string): IServer {
+  async getServer(srvId: string): Promise<IServer> {
     const srvPath         = paths.getServerPath(srvId);
     const srvExists       = fs.existsSync(srvPath);
 
@@ -206,6 +206,25 @@ class ServerService implements IServerService {
     const out: IServer = {ini, props};
     
     return out;
+  }
+
+
+
+  async getServerIds(): Promise<string[]> {
+    return await this.fileSys.listServerIds();
+  }
+
+
+  async getServers(): Promise<IServer[]> {
+    const ids = await this.getServerIds();
+    let servers = [];
+
+    for (const id of ids) {
+      const srv = await this.getServer(id);
+      servers.push(srv);
+    }
+
+    return servers;
   }
 
 

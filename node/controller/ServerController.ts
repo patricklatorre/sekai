@@ -27,11 +27,25 @@ router.post('/api/server', async (req, res, next) => {
   }
 });
 
+router.get('/api/serverid', async (req, res, next) => {
+  try {
+
+    const ids = await serverService.getServerIds();
+    res.status(200).json(ids);
+
+  } catch (err) {
+
+    log.error('', ''+err);
+    res.status(500).json({ error: ''+err });
+
+  }
+});
+
 router.get('/api/server', async (req, res, next) => {
   try {
 
-    const ids = await fileSys.listServerIds();
-    res.status(200).json(ids);
+    const servers = await serverService.getServers();
+    res.status(200).json(servers);
 
   } catch (err) {
 

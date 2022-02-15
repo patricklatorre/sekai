@@ -6,9 +6,13 @@ export interface IServerService {
 
     createServer(srv: IServerIni, userProps: IServerProps): Promise<IServer>;
 
-    runServer(id: string): IServer;
+    runServer(id: string): Promise<IServer>;
 
-    getServer(srvId: string): IServer;
+    getServer(srvId: string): Promise<IServer>;
+
+    getServerIds(): Promise<string[]>;
+    
+    getServers(): Promise<IServer[]>;
 
     applyUserProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps;
 
