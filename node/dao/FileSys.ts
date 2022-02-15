@@ -76,7 +76,21 @@ class FileSys implements IFileSys {
         .map(f => f.name);
   }
   
-  
+
+  async listServers(): Promise<IServer[]> {
+    const ids = await this.listServerIds();
+    const servers: IServer[] = [];
+    
+    for (const id of ids) {
+      const srv = await this.getServerMetadata(id);
+      srv.ini.id = id;
+      servers.push(srv);
+    }
+
+    return servers;
+  }
+
+
   async listTemplateNames(): Promise<string[]> {
     const path = paths.getTemplatesPath();
 

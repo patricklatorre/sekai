@@ -216,15 +216,7 @@ class ServerService implements IServerService {
 
 
   async getServers(): Promise<IServer[]> {
-    const ids = await this.getServerIds();
-    let servers = [];
-
-    for (const id of ids) {
-      const srv = await this.getServer(id);
-      servers.push(srv);
-    }
-
-    return servers;
+    return await this.fileSys.listServers();
   }
 
 
