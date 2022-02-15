@@ -9,6 +9,8 @@ export interface IMetadataStore {
     listServerIds(): Promise<string[]>;
   
     listTemplateNames(): Promise<string[]>;
+
+    listServers(): Promise<IServer[]>;
   
     getServerMetadata(srvId: string): Promise<IServer>;
   
