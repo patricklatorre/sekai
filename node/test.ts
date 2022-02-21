@@ -12,14 +12,14 @@ async function testFunc(runTest: boolean) {
     return;
   }
 
-  const filesDao = new ServerService();
+  const serverService = new ServerService();
 
   const testSrvs: IServer[] = [
     {
       ini: {
         name          : '0 Test Server (runnable)',
-        templateName  : 'vanilla_1.18.1',
-        javaName      : 'java17',
+        templateName  : 'Vanilla_1.18.1',
+        javaName      : '17',
         usableRam     : 1024,
       },
       props: {
@@ -32,8 +32,8 @@ async function testFunc(runTest: boolean) {
     {
       ini: {
         name          : '1 _ Test_Server',
-        templateName  : 'vanilla_1.18.1',
-        javaName      : 'java17',
+        templateName  : 'Vanilla_1.18.1',
+        javaName      : '17',
         usableRam     : 1024,
       },
       props: {},
@@ -41,8 +41,8 @@ async function testFunc(runTest: boolean) {
     {
       ini: {
         name          : '2@Test#   Server',
-        templateName  : 'vanilla_1.18.1',
-        javaName      : 'java17',
+        templateName  : 'Vanilla_1.18.1',
+        javaName      : '17',
         usableRam     : 2048,
       },
       props: {},
@@ -50,8 +50,8 @@ async function testFunc(runTest: boolean) {
     {
       ini: {
         name          : '----_3 Test Server',
-        templateName  : 'vanilla_1.18.1',
-        javaName      : 'java17',
+        templateName  : 'Vanilla_1.18.1',
+        javaName      : '17',
         // @ts-ignore
         usableRam     : 513,
       },
@@ -60,8 +60,8 @@ async function testFunc(runTest: boolean) {
     {
       ini: {
         name          : '4 Test Server',
-        templateName  : 'vanilla_1.18.1',
-        javaName      : 'java17',
+        templateName  : 'Vanilla_1.18.1',
+        javaName      : '17',
         usableRam     : 512,
       },
       props: {},
@@ -73,7 +73,7 @@ async function testFunc(runTest: boolean) {
 
     try {
 
-      const newSrv = await filesDao.createServer(srv.ini, srv.props);
+      const newSrv = await serverService.createServer(srv.ini, srv.props);
 
       // Inject new ID
       testSrvs[i].ini.id = newSrv.ini.id;
@@ -86,18 +86,18 @@ async function testFunc(runTest: boolean) {
     }
   }
 
-  const runnableSrv = testSrvs[0];
+  // const runnableSrv = testSrvs[0];
 
-  try {
-    if (runnableSrv.ini.id !== undefined) {
-      log.info('', `Attempting to run ${runnableSrv.ini.id}`);
-      filesDao.runServer(runnableSrv.ini.id);
-    } else {
-      log.error('run', `Runnable server has no ID.`);
-    }
-  } catch (err) {
-    log.error('run', ''+err);
-  }
+  // try {
+  //   if (runnableSrv.ini.id !== undefined) {
+  //     log.info('', `Attempting to run ${runnableSrv.ini.id}`);
+  //     filesDao.runServer(runnableSrv.ini.id);
+  //   } else {
+  //     log.error('run', `Runnable server has no ID.`);
+  //   }
+  // } catch (err) {
+  //   log.error('run', ''+err);
+  // }
 
 }
 

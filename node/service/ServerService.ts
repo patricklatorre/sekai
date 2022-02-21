@@ -10,11 +10,32 @@ import { IServerProps } from '../model/IServerProps';
 import { IServer } from '../model/IServer';
 import FileSys from '../dao/FileSys';
 import { IFileSys } from '../dao/IFileSys';
+import { PingMC } from 'pingmc';
 
 
 class ServerService implements IServerService {
-
+  
   private fileSys: IFileSys = new FileSys();
+  
+  async isServerUp(srvId: string): Promise<boolean> {
+    const props = await this.fileSys.getProps(srvId);
+
+    const port = props['server-port'];
+    const host = (props['server-ip'] === '')
+               ? 'localhost'
+               : props['server-ip'];
+
+   const pingmc = new PingMC(`${host}:${port}`);
+   
+   try {
+     const res = await pingmc.ping();
+     console.dir(res);
+     return true;
+   } catch (err) {
+     console.dir(err);
+     return false;
+   }
+  }
 
   async createServer(ini: IServerIni, userProps?: IServerProps): Promise<IServer> {
 
@@ -109,7 +130,7 @@ class ServerService implements IServerService {
 
 
 
-  runServer(srvId: string): Promise<IServer> {
+  async runServer(srvId: string): Promise<IServer> {
 
     log.info(srvId, 'Fetching server files');
 
@@ -117,7 +138,7 @@ class ServerService implements IServerService {
     let srv;
 
     try {
-      srv = this.getServer(srvId);
+      srv = await this.getServer(srvId);
       srv.ini.id = srvId;
     } catch (err) {
       log.error(srvId, ''+err);
@@ -163,6 +184,12 @@ class ServerService implements IServerService {
     log.info(srvId, 'Done! It may take a minute or more to be joinable.');
 
     return {...srv};
+  }
+
+
+
+  async updateServer(srvId: string, srv: IServer): Promise<IServer> {
+    return await this.fileSys.saveServerMetadata(srvId, srv);
   }
 
 
@@ -219,7 +246,13 @@ class ServerService implements IServerService {
     return await this.fileSys.listServers();
   }
 
+  async getTemplates(): Promise<string[]> {
+    return await this.fileSys.listTemplateNames();
+  }
 
+  async getJavaVersions(): Promise<string[]> {
+    return await this.fileSys.listJavaNames();
+  }
 
   /**
    * Doesn't assume any default values for the server.properties.

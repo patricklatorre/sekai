@@ -113,9 +113,10 @@ class FileSys implements IFileSys {
   }
   
   
-  async saveServerMetadata(srvId: string, srv: IServer): Promise<void> {
+  async saveServerMetadata(srvId: string, srv: IServer): Promise<IServer> {
     await this.saveIni(srvId, srv.ini);
     await this.saveProps(srvId, srv.props);
+    return await this.getServerMetadata(srvId);
   }
   
   

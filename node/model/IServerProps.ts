@@ -31,6 +31,7 @@ export interface IServerProps {
   'hardcore'                            ?: boolean;
   'hide-online-players'                 ?: boolean;
   'level-name'                          ?: string;
+  'level-type'                          ?: string;
   'max-players'                         ?: number;
   'max-tick-time'                       ?: number;
   'max-world-size'                      ?: number;

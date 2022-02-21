@@ -66,11 +66,16 @@ class FileSysCache implements IMetadataStore {
   }
   
   
-  saveServerMetadata(srvId: string, srv: IServer): Promise<void> {
+  saveServerMetadata(srvId: string, srv: IServer): Promise<IServer> {
     return new Promise((resolve, reject) => {
       srv.ini.id = srvId;
       this.serverMap.set(srvId, srv);
-      resolve();
+      const result = this.serverMap.get(srvId);
+      if (result !== undefined) {
+        resolve(result);
+      } else {
+        reject(`Server ${srvId} doesn't exist.`);
+      }
     });
   }
   

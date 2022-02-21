@@ -14,7 +14,7 @@ export interface IMetadataStore {
   
     getServerMetadata(srvId: string): Promise<IServer>;
   
-    saveServerMetadata(srvId: string, srv: IServer): Promise<void>;
+    saveServerMetadata(srvId: string, srv: IServer): Promise<IServer>;
     
     getIni(srvId: string): Promise<IServerIni>;
   
