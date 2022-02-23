@@ -8,6 +8,7 @@ import cors from 'cors';
 import path from 'path';
 import ServerController from './controller/ServerController';
 import setup from './setup';
+import {exec} from 'child_process';
 import runTests from './test'
 
 console.log(`
@@ -47,5 +48,6 @@ const port = process.env.SEKAI_PORT || 5420;
 
 server.listen(port, async () => {
   log.info('', `Done! Visit http://localhost:${port} in your browser.`);
+  exec(`start http://localhost:${port}`);
   runTests(false);
 });

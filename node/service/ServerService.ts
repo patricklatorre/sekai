@@ -1,7 +1,7 @@
 import log from 'npmlog';
 import INI from 'ini';
 import fs from 'fs-extra';
-import {exec, spawn} from 'child_process';
+import {exec} from 'child-process-promise';
 
 import * as paths from '../util/PathUtil';
 import {IServerService} from './IServerService';
