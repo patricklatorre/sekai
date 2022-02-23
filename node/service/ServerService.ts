@@ -1,44 +1,27 @@
 import log from 'npmlog';
 import INI from 'ini';
 import fs from 'fs-extra';
-import {exec, spawn} from 'child-process-promise';
+import {exec, spawn} from 'child_process';
 
 import * as paths from '../util/PathUtil';
 import {IServerService} from './IServerService';
 import {IServerIni} from '../model/IServerIni';
 import { IServerProps } from '../model/IServerProps';
-import { IServer } from '../model/IServer';
-import FileSys from '../dao/FileSys';
-import { IFileSys } from '../dao/IFileSys';
+import { IServerConfig } from '../model/IServerConfig';
+import FileSys from '../sys/FileSys';
+import { IFileSys } from '../sys/IFileSys';
 import { PingMC } from 'pingmc';
+import { IWrapper, ServerStatus } from '../model/IWrapper';
+import Wrapper from '../wrapper/Wrapper';
+import InstanceManager from '../sys/InstanceManager';
 
 
 class ServerService implements IServerService {
   
   private fileSys: IFileSys = new FileSys();
-  
-  async isServerUp(srvId: string): Promise<boolean> {
-    const props = await this.fileSys.getProps(srvId);
+  private instanceMap = new Map<string, IWrapper>();
 
-    const port = props['server-port'];
-    const host = (props['server-ip'] === '')
-               ? 'localhost'
-               : props['server-ip'];
-
-   const pingmc = new PingMC(`${host}:${port}`);
-   
-   try {
-     const res = await pingmc.ping();
-     console.dir(res);
-     return true;
-   } catch (err) {
-     console.dir(err);
-     return false;
-   }
-  }
-
-  async createServer(ini: IServerIni, userProps?: IServerProps): Promise<IServer> {
-
+  async createServer(ini: IServerIni, userProps?: IServerProps): Promise<IServerConfig> {
     /* 0. SANITIZE VALUES */
     
     /* Generate ID */
@@ -74,6 +57,7 @@ class ServerService implements IServerService {
       /* NOTE: the ID is the directory name itself */
       id            : ini.id,
       name          : ini.name,
+      owner         : ini.owner,
       templateId    : ini.templateName,
       templateName  : ini.templateName,
       javaId        : ini.javaName,
@@ -120,7 +104,7 @@ class ServerService implements IServerService {
     /* Return sekai.ini data */
     log.info(ini.id, `Done!`);
     
-    const result: IServer = {
+    const result: IServerConfig = {
       ini: iniData,
       props: finalProps,
     };
@@ -129,120 +113,106 @@ class ServerService implements IServerService {
   }
 
 
-
-  async runServer(srvId: string): Promise<IServer> {
-
-    log.info(srvId, 'Fetching server files');
-
-    /* 1. FETCH SERVER - SHOULD ALSO CHECK IF PATHS EXISTS */
-    let srv;
-
-    try {
-      srv = await this.getServer(srvId);
-      srv.ini.id = srvId;
-    } catch (err) {
-      log.error(srvId, ''+err);
-      throw new Error(''+err);
-    }
-
-    /* 2. CHECK IF JAVA AND SERVER.JAR EXIST */
-    const javaPath        = paths.getJavaBinPath(srv.ini.javaName);
-    const javaExists      = fs.existsSync(javaPath);
-
-    if (!javaExists) {
-      log.error(srvId, `Java version doesn't exist: ${javaPath}`);
-      throw new Error(`Java version "${srv.ini.javaName}" doesn't exist.`);
-    }
-
-    const srvJarPath      = paths.getServerJarPath(srvId);
-    const srvJarExists    = fs.existsSync(srvJarPath);
-
-    if (!srvJarExists) {
-      log.error(srvId, `server.jar not found: ${javaPath}`);
-      throw new Error(`server.jar not found.`);
-    }
-
-    /* Sanitize usableRam value */
-    let usableRam = Number(srv.ini.usableRam);
-    const isUsableRamValid = [512, 1024, 2048, 4096, 6144].includes(usableRam);
-    
-    if (!isUsableRamValid) {
-      log.error(srvId, `Invalid usable RAM: ${usableRam}`);
-      throw new Error(`Invalid usable RAM: ${usableRam}`);
-    }
-
-    /* 3. RUN SERVER AS HEADLESS PROCESS */
-    log.info(srvId, 'Starting up');
-
-    const srvPath = paths.getServerPath(srvId);
-
-    const cdCmd   = `cd ${srvPath}`;
-    const javaCmd = `${javaPath} -Xmx${usableRam}M -Xms${usableRam}M -jar server.jar nogui`;
-
-    exec(`start cmd /C "${cdCmd} && ${javaCmd}"`);
-
-    log.info(srvId, 'Done! It may take a minute or more to be joinable.');
-
-    return {...srv};
+  async runServer(srvId: string): Promise<ServerStatus> {
+    const config = await this.getServer(srvId);
+    const wrapper = new Wrapper(config);
+    this.instanceMap.set(srvId, wrapper);
+    return await wrapper.start();
   }
 
 
+  async stopServer(id: string): Promise<ServerStatus> {
+    const wrapper = this.instanceMap.get(id);
 
-  async updateServer(srvId: string, srv: IServer): Promise<IServer> {
+    if (wrapper === undefined || wrapper.status === ServerStatus.OFFLINE) {
+      return ServerStatus.OFFLINE;
+    } else {
+      const statusAfterStop = await wrapper.stop();
+
+      if (statusAfterStop === ServerStatus.OFFLINE) {
+        this.instanceMap.delete(id);
+      }
+
+      return statusAfterStop;
+    }
+  }
+
+
+  async isServerUp(srvId: string): Promise<boolean> {
+    const instance = await this.instanceMap.get(srvId);
+
+    if (instance === undefined) {
+      return false;
+    }
+
+    return (instance.status === ServerStatus.ONLINE);
+  }
+
+
+  async getServerStatus(srvId: string): Promise<ServerStatus> {
+    const instance = this.instanceMap.get(srvId);
+
+    if (instance === undefined || instance.status === ServerStatus.OFFLINE) {
+      return ServerStatus.OFFLINE;
+    }
+
+    return instance.status;
+  }
+
+
+  async updateServer(srvId: string, srv: IServerConfig): Promise<IServerConfig> {
     return await this.fileSys.saveServerMetadata(srvId, srv);
   }
-
 
 
   /** 
    * Get existing sekai-managed server. 
    */
-  async getServer(srvId: string): Promise<IServer> {
-    const srvPath         = paths.getServerPath(srvId);
-    const srvExists       = fs.existsSync(srvPath);
+  async getServer(srvId: string): Promise<IServerConfig> {
+    // const srvPath         = paths.getServerPath(srvId);
+    // const srvExists       = fs.existsSync(srvPath);
 
-    if (!srvExists) {
-      log.error(srvId, `server.jar not found. ${srvPath}`);
-      throw new Error( `server.jar not found.`);
-    }
+    // if (!srvExists) {
+    //   log.error(srvId, `server.jar not found. ${srvPath}`);
+    //   throw new Error( `server.jar not found.`);
+    // }
 
-    const iniPath         = paths.getIniPath(srvId);
-    const iniExists       = fs.existsSync(iniPath);
+    // const iniPath         = paths.getIniPath(srvId);
+    // const iniExists       = fs.existsSync(iniPath);
 
-    if (!iniExists) {
-      log.error(srvId, `sekai.ini not found. ${iniPath}`);
-      throw new Error( `sekai.ini not found.`);
-    }
+    // if (!iniExists) {
+    //   log.error(srvId, `sekai.ini not found. ${iniPath}`);
+    //   throw new Error( `sekai.ini not found.`);
+    // }
 
-    const propsPath       = paths.getPropertiesPath(srvId);
-    const propsExists     = fs.existsSync(propsPath);
+    // const propsPath       = paths.getPropertiesPath(srvId);
+    // const propsExists     = fs.existsSync(propsPath);
 
-    if (!propsExists) {
-      log.error(srvId, `server.properties not found. ${propsPath}`);
-      throw new Error( `server.properties not found.`);
-    }
+    // if (!propsExists) {
+    //   log.error(srvId, `server.properties not found. ${propsPath}`);
+    //   throw new Error( `server.properties not found.`);
+    // }
 
-    const iniContent    = fs.readFileSync(iniPath, 'utf8');
-    const propsContent  = fs.readFileSync(propsPath, 'utf8');
+    // const iniContent    = fs.readFileSync(iniPath, 'utf8');
+    // const propsContent  = fs.readFileSync(propsPath, 'utf8');
 
-    const ini   = <IServerIni> INI.parse(iniContent);
-    const props = <IServerProps> INI.parse(propsContent);
+    // const ini   = <IServerIni> INI.parse(iniContent);
+    // const props = <IServerProps> INI.parse(propsContent);
 
-    ini.id = srvId;
+    // ini.id = srvId;
 
-    const out: IServer = {ini, props};
-    
-    return out;
+    // const out: IServerConfig = {ini, props};
+    const config = await this.fileSys.getServerMetadata(srvId);
+    config.ini.id = srvId;
+    return config;
   }
-
-
 
   async getServerIds(): Promise<string[]> {
     return await this.fileSys.listServerIds();
   }
 
 
-  async getServers(): Promise<IServer[]> {
+  async getServers(): Promise<IServerConfig[]> {
     return await this.fileSys.listServers();
   }
 

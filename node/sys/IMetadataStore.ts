@@ -1,4 +1,4 @@
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni } from "../model/IServerIni";
 import { IServerProps } from "../model/IServerProps";
 
@@ -10,11 +10,11 @@ export interface IMetadataStore {
   
     listTemplateNames(): Promise<string[]>;
 
-    listServers(): Promise<IServer[]>;
+    listServers(): Promise<IServerConfig[]>;
   
-    getServerMetadata(srvId: string): Promise<IServer>;
+    getServerMetadata(srvId: string): Promise<IServerConfig>;
   
-    saveServerMetadata(srvId: string, srv: IServer): Promise<IServer>;
+    saveServerMetadata(srvId: string, srv: IServerConfig): Promise<IServerConfig>;
     
     getIni(srvId: string): Promise<IServerIni>;
   

@@ -1,11 +1,7 @@
-import { AbstractIterator } from "abstract-leveldown";
-import { rejects } from "assert";
-import EncodingDown from "encoding-down"
-import { LevelUp } from "levelup";
-import MemDown from "memdown";
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni } from "../model/IServerIni";
 import { IServerProps } from "../model/IServerProps";
+import { IWrapper } from "../model/IWrapper";
 import { IMetadataStore } from "./IMetadataStore";
 
 class FileSysCache implements IMetadataStore {
@@ -15,10 +11,11 @@ class FileSysCache implements IMetadataStore {
   //   EncodingDown<string, IServer>(MemDown(), { valueEncoding: 'json' })
   // );
 
-  private javaMap       = new Map<string, string>();
-  private templateMap   = new Map<string, string>();
-  private serverMap     = new Map<string, IServer>();
-
+  // private javaMap       = new Map<string, string>();
+  // private templateMap   = new Map<string, string>();
+  
+  // private instances = new Map<string, IWrapper>();
+  private instances = new Map<string, IServerConfig>();
 
   async listJavaNames(): Promise<string[]> {
     throw new Error("Method not implemented.");
@@ -27,17 +24,17 @@ class FileSysCache implements IMetadataStore {
   
   listServerIds(): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      const ids = [...this.serverMap.keys()];
+      const ids = [...this.instances.keys()];
       resolve(ids);
     });
   }
 
 
-  listServers(): Promise<IServer[]> {
+  listServers(): Promise<IServerConfig[]> {
     return new Promise((resolve, reject) => {
-      const servers: IServer[] = [];
+      const servers: IServerConfig[] = [];
 
-      for (const [srvId, srv] of Object.entries(this.serverMap)) {
+      for (const [srvId, srv] of Object.entries(this.instances)) {
         srv.ini.id = srvId;
         servers.push(srv);
       }
@@ -52,9 +49,9 @@ class FileSysCache implements IMetadataStore {
   }
   
   
-  getServerMetadata(srvId: string): Promise<IServer> {
+  getServerMetadata(srvId: string): Promise<IServerConfig> {
     return new Promise((resolve, reject) => {
-      const srv = this.serverMap.get(srvId);
+      const srv = this.instances.get(srvId);
       
       if (srv !== undefined) {
         srv.ini.id = srvId;
@@ -66,11 +63,11 @@ class FileSysCache implements IMetadataStore {
   }
   
   
-  saveServerMetadata(srvId: string, srv: IServer): Promise<IServer> {
+  saveServerMetadata(srvId: string, srv: IServerConfig): Promise<IServerConfig> {
     return new Promise((resolve, reject) => {
       srv.ini.id = srvId;
-      this.serverMap.set(srvId, srv);
-      const result = this.serverMap.get(srvId);
+      this.instances.set(srvId, srv);
+      const result = this.instances.get(srvId);
       if (result !== undefined) {
         resolve(result);
       } else {

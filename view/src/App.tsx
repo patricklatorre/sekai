@@ -1,17 +1,14 @@
-import { setUncaughtExceptionCaptureCallback } from 'process';
-import React, { useEffect, useState } from 'react';
-import { merge } from 'lodash';
-
-import { useNavigate, useParams } from 'react-router-dom';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { IServer } from './model/IServer';
-import { IServerIni, MemoryMb } from './model/IServerIni';
-import { IServerProps } from './model/IServerProps';
-import { IRestClient } from './rest/IRestClient';
-import RestClientV1 from './rest/RestClientV1';
+import { useEffect, useState } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import CreateServerView from './components/CreateServerView';
 import ServerView from './components/ServerView';
 import Spinner from './components/Spinner';
+import { IServerConfig } from './model/IServerConfig';
+import { IServerIni } from './model/IServerIni';
+import { IServerProps } from './model/IServerProps';
+import { IRestClient } from './rest/IRestClient';
+import RestClientV1 from './rest/RestClientV1';
+
 
 interface IPartialServer {
   ini?: Partial<IServerIni>;
@@ -42,7 +39,6 @@ function Navbar() {
         <button className='btn-sm-blue' onClick={() => navigate('/new')}>Create server</button>
       </div>
       <hr className="mt-3 opacity-10 w-full"/>
-      {/* <a href="/" className="text-xl font-bold text-center w-full">sekai.</a> */}
     </div>
   );
 }
@@ -61,11 +57,11 @@ function PromptMessage(props: {msg:string}) {
 }
 
 
-function ServerListView(props: {restClient: IRestClient, srvs:IServer[]}) {
+function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) {
   const navigate = useNavigate();
   const srvs = props.srvs;
   const restClient = props.restClient;
-  const [filtered, setFiltered]   = useState<IServer[]>(srvs);
+  const [filtered, setFiltered]   = useState<IServerConfig[]>(srvs);
   const [searchKey, setSearchKey] = useState<string>('');
   const [onlineMap, setOnlineMap] = useState<{[key:string]: boolean}>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -210,7 +206,7 @@ function ServerView(props: {restClient: IRestClient}) {
 function App() {
   const restClient: IRestClient = new RestClientV1();
 
-  const [servers, setServers]     = useState<IServer[]>([]);
+  const [servers, setServers]     = useState<IServerConfig[]>([]);
   const [promptMsg, setPromptMsg] = useState<string>('');
 
   useEffect(() => {

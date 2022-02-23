@@ -1,12 +1,8 @@
-import log, { error } from 'npmlog';
-import express from 'express';
-import path from 'path';
+import log from 'npmlog';
 import ServerService from './service/ServerService';
-import setup from './setup';
-import { IServerIni } from './model/IServerIni';
-import { IServer } from './model/IServer';
+import { IServerConfig } from './model/IServerConfig';
 
-async function testFunc(runTest: boolean) {
+async function runTests(runTest: boolean) {
 
   if (!runTest) { 
     return;
@@ -14,13 +10,14 @@ async function testFunc(runTest: boolean) {
 
   const serverService = new ServerService();
 
-  const testSrvs: IServer[] = [
+  const testSrvs: IServerConfig[] = [
     {
       ini: {
         name          : '0 Test Server (runnable)',
         templateName  : 'Vanilla_1.18.1',
         javaName      : '17',
         usableRam     : 1024,
+        owner         : 'snoot',
       },
       props: {
         "allow-flight": false,
@@ -35,6 +32,7 @@ async function testFunc(runTest: boolean) {
         templateName  : 'Vanilla_1.18.1',
         javaName      : '17',
         usableRam     : 1024,
+        owner         : 'snoot',
       },
       props: {},
     },
@@ -44,6 +42,7 @@ async function testFunc(runTest: boolean) {
         templateName  : 'Vanilla_1.18.1',
         javaName      : '17',
         usableRam     : 2048,
+        owner         : 'snoot',
       },
       props: {},
     },
@@ -54,6 +53,7 @@ async function testFunc(runTest: boolean) {
         javaName      : '17',
         // @ts-ignore
         usableRam     : 513,
+        owner         : 'snoot',
       },
       props: {},
     },
@@ -63,6 +63,7 @@ async function testFunc(runTest: boolean) {
         templateName  : 'Vanilla_1.18.1',
         javaName      : '17',
         usableRam     : 512,
+        owner         : 'snoot',
       },
       props: {},
     },
@@ -101,4 +102,4 @@ async function testFunc(runTest: boolean) {
 
 }
 
-export default testFunc;
+export default runTests;

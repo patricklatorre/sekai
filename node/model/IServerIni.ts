@@ -4,13 +4,14 @@ export interface IServerIni {
 
   id?: string;
   name: string;
-
+  
   templateId?: string;
   templateName: string;
-
+  
   javaId?: string;
   javaName: string;
-
+  
   usableRam: MemoryMb;
+  owner: string;
 
 }

@@ -1,4 +1,4 @@
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni } from "../model/IServerIni";
 import { IServerProps } from "../model/IServerProps";
 import { IFileSys } from "./IFileSys";
@@ -77,9 +77,9 @@ class FileSys implements IFileSys {
   }
   
 
-  async listServers(): Promise<IServer[]> {
+  async listServers(): Promise<IServerConfig[]> {
     const ids = await this.listServerIds();
-    const servers: IServer[] = [];
+    const servers: IServerConfig[] = [];
     
     for (const id of ids) {
       const srv = await this.getServerMetadata(id);
@@ -106,14 +106,14 @@ class FileSys implements IFileSys {
   }
   
   
-  async getServerMetadata(srvId: string): Promise<IServer> {
+  async getServerMetadata(srvId: string): Promise<IServerConfig> {
     const ini   = await this.getIni(srvId);
     const props = await this.getProps(srvId);
     return {ini, props};
   }
   
   
-  async saveServerMetadata(srvId: string, srv: IServer): Promise<IServer> {
+  async saveServerMetadata(srvId: string, srv: IServerConfig): Promise<IServerConfig> {
     await this.saveIni(srvId, srv.ini);
     await this.saveProps(srvId, srv.props);
     return await this.getServerMetadata(srvId);

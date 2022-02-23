@@ -13,4 +13,6 @@ export interface IServerIni {
 
   usableRam: MemoryMb;
 
+  owner: string;
+
 }

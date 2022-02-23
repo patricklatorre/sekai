@@ -30,6 +30,7 @@
     "memdown": "^6.1.1",
     "npmlog": "^6.0.0",
     "pingmc": "^3.1.0",
+    "rxjs": "^7.5.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

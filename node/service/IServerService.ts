@@ -1,20 +1,23 @@
 import { IServerProps } from "../model/IServerProps";
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni } from "../model/IServerIni";
+import { ServerStatus } from "../model/IWrapper";
 
 export interface IServerService {
 
-    createServer(srv: IServerIni, userProps: IServerProps): Promise<IServer>;
+    createServer(srv: IServerIni, userProps: IServerProps): Promise<IServerConfig>;
 
-    runServer(id: string): Promise<IServer>;
+    runServer(id: string): Promise<ServerStatus>;
 
-    updateServer(srvId: string, srv: IServer): Promise<IServer>;
+    stopServer(id: string): Promise<ServerStatus>;
 
-    getServer(srvId: string): Promise<IServer>;
+    updateServer(srvId: string, srv: IServerConfig): Promise<IServerConfig>;
+
+    getServer(srvId: string): Promise<IServerConfig>;
 
     getServerIds(): Promise<string[]>;
     
-    getServers(): Promise<IServer[]>;
+    getServers(): Promise<IServerConfig[]>;
 
     getTemplates(): Promise<string[]>;
 
@@ -23,5 +26,7 @@ export interface IServerService {
     applyUserProperties(defaultProps: IServerProps, userProps?: IServerProps): IServerProps;
 
     isServerUp(srvId: string): Promise<boolean>;
+
+    getServerStatus(srvId: string): Promise<ServerStatus>
 
 }

@@ -1,7 +1,7 @@
 import { IServerProps } from "./IServerProps";
 import { IServerIni } from "./IServerIni";
 
-export interface IServer {
+export interface IServerConfig {
   ini: IServerIni;
   props: IServerProps;
 }

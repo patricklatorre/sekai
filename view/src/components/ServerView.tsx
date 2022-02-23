@@ -1,9 +1,11 @@
 import { merge } from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni, MemoryMb } from "../model/IServerIni";
 import { Difficulty, Gamemode, IServerProps } from "../model/IServerProps";
+import { IPData } from "../model/ISettings";
+import ServerStatus from "../model/ServerStatus";
 import { IRestClient } from "../rest/IRestClient";
 import Spinner from "./Spinner";
 
@@ -144,23 +146,27 @@ function ServerView(props: {restClient: IRestClient}) {
     'white-list'                          : 'Default',
   };
 
-  const defaultValues: IServer = {
+  const defaultValues: IServerConfig = {
     ini: {
       name: '',
       templateName: '',
       javaName: '',
+      owner: '',
       usableRam: 1024,
     },
     props: defaultProps,
   };
 
-  const [srv, setSrv]                   = useState<IServer>(defaultValues);
+  const [srv, setSrv]                   = useState<IServerConfig>(defaultValues);
   const [javaVersions, setJavaVersions] = useState<string[]>([]);
+  const [ipData, setIpData]             = useState<IPData>();
+
   const [isLoading, setIsLoading]       = useState<boolean>(true);
   const [isShowingMore, setShowingMore] = useState<boolean>(false);
   const [isUpdating, setIsUpdating]     = useState<boolean>(false);
   const [isStarting, setIsStarting]     = useState<boolean>(false);
   const [isOnline, setIsOnline]         = useState<boolean>(false);
+  const [isModalShown, setIsModalShown] = useState<boolean>(false);
 
   const updateModel = (updates: IPartialServer) => {
     // @ts-ignore
@@ -204,18 +210,84 @@ function ServerView(props: {restClient: IRestClient}) {
     if (srv.ini.id !== undefined) {
       setIsLoading(true);
       setIsStarting(true);
-      await restClient.runServer(srv.ini.id);
-      
-      var pingInterval = setInterval(async function () {
-        console.log('Pinging server..');
 
-        if (await restClient.isServerUp(id)) {        
-          setIsOnline(true);
-          setIsLoading(false);
-          setIsStarting(false);
-          clearInterval(pingInterval);
-        }
-      }, 5000);
+      const statusBeforeRun = await restClient.getServerStatus(srv.ini.id);
+
+      if (statusBeforeRun !== ServerStatus.OFFLINE) {
+        window.alert(`Server has already been started/stopped. Please refresh the page to see the changes.`);
+        setIsOnline(false);
+        setIsLoading(false);
+        setIsStarting(false)
+        return;
+      }
+
+      const status = await restClient.runServer(srv.ini.id);
+
+      if (status === ServerStatus.ONLINE) {
+        setIsOnline(true);
+        setIsLoading(false);
+        setIsStarting(false);
+      } else {
+        window.alert(`Failed to start server. (status:${status})`);
+        setIsLoading(false);
+        setIsStarting(false);
+      }
+
+      // console.log(`status=${status}`);
+      // var pingInterval = setInterval(async function () {
+      //   console.log('Pinging server..');
+
+      //   if (await restClient.isServerUp(id)) {        
+      //     setIsOnline(true);
+      //     setIsLoading(false);
+      //     setIsStarting(false);
+      //     clearInterval(pingInterval);
+      //   }
+      // }, 5000);
+
+    } else {
+      window.alert(`Server ${srv?.ini.name} has no ID.`);
+    }
+  }
+
+  const stopServer = async () => {
+    if (srv.ini.id !== undefined) {
+      setIsLoading(true);
+      setIsStarting(true);
+
+      const statusBeforeStop = await restClient.getServerStatus(srv.ini.id);
+
+      if (statusBeforeStop === ServerStatus.STOPPING) {
+        window.alert(`Server is already being stopped. Please refresh the page to see the changes.`);
+        setIsOnline(true);
+        setIsLoading(false);
+        setIsStarting(false);
+        return;
+      }
+
+      const status = await restClient.stopServer(srv.ini.id);
+      
+      if (status === ServerStatus.OFFLINE) {
+        setIsOnline(false);
+        setIsLoading(false);
+        setIsStarting(false);
+      } else {
+        window.alert(`Failed to stop server. (status:${status})`);
+        setIsLoading(false);
+        setIsStarting(false);
+      }
+
+      // console.log(`status=${status}`);
+      // var pingInterval = setInterval(async function () {
+      //   console.log('Pinging server..');
+
+      //   if (!await restClient.isServerUp(id)) {        
+      //     setIsOnline(false);
+      //     setIsLoading(false);
+      //     setIsStarting(false);
+      //     clearInterval(pingInterval);
+      //   }
+      // }, 5000);
 
     } else {
       window.alert(`Server ${srv?.ini.name} has no ID.`);
@@ -243,12 +315,20 @@ function ServerView(props: {restClient: IRestClient}) {
       }
 
       // Fetch the server
+      console.log('called get server');
       const srvResult = await restClient.getServer(id);
       setSrv(srvResult);
-      console.log('called get server');
-      const pingResult = await restClient.isServerUp(id);
-      setIsOnline(pingResult);
+      
+      // Fetch server online status
       console.log('pinged server');
+      const pingResult = await restClient.isServerUp(id);
+      console.log(`isUp: ${pingResult}`);
+      setIsOnline(pingResult);
+      
+      // Fetch IP data of sekai's settings.ini
+      console.log('called get IP data');
+      const ipDataResult = await restClient.getIpData();
+      setIpData(ipDataResult);
       setIsLoading(false);
     })();
   }, []);
@@ -285,6 +365,86 @@ function ServerView(props: {restClient: IRestClient}) {
 
   return (
     <div className="w-100 max-w-md mx-auto px-5 pt-1">
+      
+      {
+        /**
+         * JOIN MODAL
+         */
+        (!isModalShown) 
+          ? (<></>) 
+          : (
+            <div className="fixed top-0 left-0 z-30 flex justify-center items-center h-screen w-screen dark-semiclear bg-black"
+                onClick={(ev) => {
+                  setIsModalShown(false);
+                }}
+            >
+              <div className="fixed z-40 p-5 border border-slate-500 rounded max-w-1/5 w-1/5 bg-slate-700"
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  ev.preventDefault();
+                }}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-5">
+                    <div>
+                      <p className="text-gray-200 text-sm pb-1">Join using <strong>Hamachi</strong></p>
+                      <div className="flex gap-1">
+                        <span className="px-2 py-1 bg-slate-700 rounded border border-gray-500 w-full text-gray-400 truncate">
+                          {ipData?.vpn}:{srv.props["server-port"]}
+                        </span>
+                        <button className="btn-sm-emerald"
+                            onClickCapture={async () => {
+                              await navigator.clipboard.writeText(`${ipData?.vpn}:${srv.props["server-port"]}`);
+                              setIsModalShown(false);
+                            }}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-200 text-sm pb-1">Join using <strong>LAN</strong></p>
+                      <div className="flex gap-1">
+                        <span className="px-2 py-1 bg-slate-700 rounded border border-gray-500 w-full text-gray-400 truncate">
+                          {ipData?.local}:{srv.props["server-port"]}
+                        </span>
+                        <button className="btn-sm-emerald"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(`${ipData?.local}:${srv.props["server-port"]}`);
+                            setIsModalShown(false);
+                          }}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-200 text-sm pb-1">Join as <strong>Sekai admin</strong></p>
+                      <div className="flex gap-1">
+                        <span className="px-2 py-1 bg-slate-700 rounded border border-gray-500 w-full text-gray-400 truncate">
+                          localhost:{srv.props["server-port"]}
+                        </span>
+                        <button className="btn-sm-emerald"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(`localhost:${srv.props["server-port"]}`);
+                            setIsModalShown(false);
+                          }}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-1"></div>
+                  {/* <button className="btn-sm-blue p-2 mt-3 w-fit" onClick={() => setIsModalShown(false)}>
+                    Close
+                  </button> */}
+                </div>
+              </div>
+            </div>
+          )
+      }
+
       <div className='flex flex-col gap-4 mt-5'>
         {
           // @ts-ignore
@@ -324,25 +484,28 @@ function ServerView(props: {restClient: IRestClient}) {
             />
           </div>
 
-          <div className="flex justify-start gap-1 my-2">
+          <div className="flex justify-start gap-2 my-2">
+            <button className='text-sm px-3 py-1 rounded bg-gray-600 opacity-80 hover:opacity-100 active:opacity-60'
+                onClick={() => setIsModalShown(true)}
+            >
+              Join
+            </button>
             {
               (!isOnline) ? (
-                <button className='text-sm px-2 py-1 rounded bg-green-700 opacity-80 hover:opacity-100 active:opacity-60'
-                  onClick={() => runServer()}
-                >
-                Start
-              </button>
+                <>
+                  <button className='text-sm px-3 py-1 rounded bg-green-700 opacity-80 hover:opacity-100 active:opacity-60'
+                    onClick={() => runServer()}>
+                    Start
+                  </button>
+                </>
               ) : (
-                <button className='text-sm px-2 py-1 rounded bg-red-700 opacity-80 hover:opacity-100 active:opacity-60'
-                  onClick={async () => {
-                    if (srv?.ini.id !== undefined) {
-                      window.alert(`TODO: Not implemented.`);
-                    } else {
-                      window.alert(`Server ${srv?.ini.name} has no ID.`);
-                    }
-                  }}>
-                Stop
-              </button>
+                <>
+                  <button className='text-sm px-2 py-1 rounded bg-red-700 opacity-80 hover:opacity-100 active:opacity-60'
+                    onClick={() => stopServer()}
+                  >
+                    Stop
+                  </button>
+                </>
               )
             }
           </div>
@@ -350,30 +513,30 @@ function ServerView(props: {restClient: IRestClient}) {
         
         {/* TEMPLATE AND JAVA */}
         <div className="flex justify-center gap-2">
+          {/* OWNER */}
+          <div className='w-1/3 flex flex-col'>
+            <div className="flex justify-between">
+              <span className='opacity-50 text-sm'>Owner</span>
+            </div>
+            <p className="text-gray-100 text-sm truncate">
+              {srv.ini.owner}
+            </p>
+          </div>
           {/* TEMPLATE NAME */}
-          <div className='w-full flex flex-col'>
+          <div className='w-1/3 flex flex-col'>
             <div className="flex justify-between">
               <span className='opacity-50 text-sm'>Template</span>
             </div>
-            <span className="text-gray-100 text-base">
+            <span className="text-gray-100 text-sm truncate">
               {toReadableName(srv.ini.templateName)}
             </span>
           </div>
-          {/* DATE CREATED */}
-          <div className='w-full flex flex-col'>
-            <div className="flex justify-between">
-              <span className='opacity-50 text-sm'>Date created</span>
-            </div>
-            <span className="text-gray-100 text-base">
-              yyyy/mm/dd
-            </span>
-          </div>
           {/* LAST RAN */}
-          <div className='w-full flex flex-col'>
+          <div className='w-1/3 flex flex-col'>
             <div className="flex justify-between">
               <span className='opacity-50 text-sm'>Last ran</span>
             </div>
-            <span className="text-gray-100 text-base">
+            <span className="text-gray-100 text-sm truncate">
               yyyy/mm/dd
             </span>
           </div>

@@ -1,7 +1,7 @@
 import { merge } from "lodash";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IServer } from "../model/IServer";
+import { IServerConfig } from "../model/IServerConfig";
 import { IServerIni, MemoryMb } from "../model/IServerIni";
 import { Difficulty, Gamemode, IServerProps } from "../model/IServerProps";
 import { IRestClient } from "../rest/IRestClient";
@@ -143,9 +143,10 @@ function CreateServerView(props: {restClient: IRestClient}) {
     'white-list'                          : 'Default',
   };
 
-  const defaultValues: IServer = {
+  const defaultValues: IServerConfig = {
     ini: {
       name: '',
+      owner: '',
       templateName: '',
       javaName: '',
       usableRam: 1024,
@@ -153,7 +154,7 @@ function CreateServerView(props: {restClient: IRestClient}) {
     props: defaultProps,
   };
 
-  const [srv, setSrv]                   = useState<IServer>(defaultValues);
+  const [srv, setSrv]                   = useState<IServerConfig>(defaultValues);
   const [templates, setTemplates]       = useState<string[]>([]);
   const [javaVersions, setJavaVersions] = useState<string[]>([]);
   const [isLoading, setIsLoading]       = useState<boolean>(true);
@@ -262,12 +263,36 @@ function CreateServerView(props: {restClient: IRestClient}) {
                 });
               }}
           />
+          <span className="text-xs text-gray-600 italic">
+            The ID is permanent and must be unique.
+          </span>
         </div>
         
+        {/* OWNER */}
+        <div className='flex flex-col gap-1'>
+          <div className="flex justify-between">
+            <span className='opacity-50 text-sm'>Owner</span>
+          </div>
+          <input type="text" className='form-input'
+              disabled={isLoading}
+              value={srv.ini.owner}
+              onChange={ev => {
+                updateModel({
+                  ini: {
+                    owner: ev.target.value
+                  }
+                });
+              }}
+          />
+          <span className="text-xs text-gray-600 italic">
+            Your name or Minecraft username.
+          </span>
+        </div>
+
         {/* TEMPLATE AND JAVA */}
-        <div className="flex justify-center gap-2">
+        {/* <div className="flex justify-center gap-2"> */}
           {/* TEMPLATE NAME */}
-          <div className='w-2/3 flex flex-col gap-1'>
+          <div className='w-full flex flex-col gap-1'>
             <div className="flex justify-between">
               <span className='opacity-50 text-sm'>Template</span>
             </div>
@@ -290,10 +315,13 @@ function CreateServerView(props: {restClient: IRestClient}) {
                 ))
               }
             </select>
+            <span className="text-xs text-gray-600 italic">
+              Minecraft version or modpack.
+            </span>
           </div>
 
           {/* JAVA VERSION NAME */}
-          <div className='w-1/3 flex flex-col gap-1'>
+          <div className='w-full flex flex-col gap-1'>
             <div className="flex justify-between">
               <span className='opacity-50 text-sm'>Java version</span>
             </div>
@@ -316,8 +344,11 @@ function CreateServerView(props: {restClient: IRestClient}) {
                 ))
               }
             </select>
+            <span className="text-xs text-gray-600 italic">
+              Minecraft uses different Java versions. Use the latest one that works.
+            </span>
           </div>
-        </div>
+        {/* </div> */}
         
         {/* GAMEMODE */}
         <div className='flex flex-col gap-1'>
@@ -343,6 +374,9 @@ function CreateServerView(props: {restClient: IRestClient}) {
             <option value={Gamemode.ADVENTURE}>Adventure</option>
             <option value={Gamemode.SPECTATOR}>Spectator</option>
           </select>
+          <span className="text-xs text-gray-600 italic">
+              Default will use the template's default gamemode.
+          </span>
         </div>
 
         {/* DIFFICULTY */}
@@ -369,6 +403,9 @@ function CreateServerView(props: {restClient: IRestClient}) {
             <option value={Difficulty.NORMAL}>Normal</option>
             <option value={Difficulty.HARD}>Hard</option>
           </select>
+          <span className="text-xs text-gray-600 italic">
+              Default will use the template's default difficulty.
+          </span>
         </div>
 
         {/* DESCRIPTION */}
@@ -387,6 +424,9 @@ function CreateServerView(props: {restClient: IRestClient}) {
                 });
               }}
           />
+          <span className="text-xs text-gray-600 italic">
+            This will also be shown in the server list in-game.
+          </span>
         </div>
 
         {/* USABLE RAM */}
@@ -412,7 +452,7 @@ function CreateServerView(props: {restClient: IRestClient}) {
             <option value={6144}>Ultra (6GB)</option>
           </select>
           <span className="text-xs text-gray-600 italic">
-            Modpacks usually require this to be set to Ultra.  
+            Low to Medium is enough for a small number of players.
           </span>
         </div>
 
@@ -434,7 +474,7 @@ function CreateServerView(props: {restClient: IRestClient}) {
               }}
           />
           <span className="text-xs text-gray-600 italic">
-            This port should only be used by this server. (Default: 25565)
+            Keep at 25565 if you don't plan to run this alongside other servers.
           </span>
         </div>
         
