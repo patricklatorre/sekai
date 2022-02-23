@@ -37,8 +37,8 @@ class FileSys implements IFileSys {
     const path      = paths.getEulaPath(srvId);
 
     if (!fs.existsSync(path)) {
-      log.error(srvId, `sekai.ini not found`);
-      throw new Error(`sekai.ini not found`);
+      log.error(srvId, `eula.txt not found`);
+      throw new Error(`eula.txt not found`);
     }
 
     let text  = await fs.readFile(path, 'utf8')
