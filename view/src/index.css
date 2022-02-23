@@ -97,7 +97,7 @@ html, body {
     rounded
     bg-slate-800
     opacity-80
-    focus:opacity-100
+    focus:opacity-100;
 }
 
 .form-select {
@@ -107,7 +107,7 @@ html, body {
     rounded
     bg-slate-800
     opacity-80
-    focus:opacity-100
+    focus:opacity-100;
 }
 
 .dark-semiclear {
