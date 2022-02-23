@@ -12,7 +12,7 @@ export enum Gamemode {
   SPECTATOR = 3
 }
 
-export interface IProperties {
+export interface IServerProps {
   'allow-flight'                        ?: boolean;
   'allow-nether'                        ?: boolean;
   'broadcast-console-to-ops'            ?: boolean;
@@ -31,6 +31,7 @@ export interface IProperties {
   'hardcore'                            ?: boolean;
   'hide-online-players'                 ?: boolean;
   'level-name'                          ?: string;
+  'level-type'                          ?: string;
   'max-players'                         ?: number;
   'max-tick-time'                       ?: number;
   'max-world-size'                      ?: number;

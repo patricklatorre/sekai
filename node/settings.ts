@@ -4,7 +4,26 @@ import {existsSync, writeFileSync, readFileSync} from 'fs';
 
 import * as paths from './util/PathUtil';
 
-let settings = {};
+export interface ISettings {
+  ipAddress: string;
+  vpnIpAddress: string;
+  detachServers: boolean;
+  usePassword: boolean;
+  password: string;
+}
+
+export interface IPData {
+  local: string;
+  vpn: string;
+};
+
+let settings: ISettings = {
+  ipAddress: '',
+  vpnIpAddress: '',
+  detachServers: false,
+  usePassword: false,
+  password: '',
+};
 
 export function initialize() {
   const settingsPath    = paths.getSettingsPath();
@@ -14,21 +33,23 @@ export function initialize() {
 
     if (!settingsExists) {
 
-      const newSettings = {
+      const newSetting: ISettings = {
         ipAddress: '',
+        vpnIpAddress: '',
+        detachServers: false,
         usePassword: false,
         password: '',
       };
 
-      const content = INI.stringify(newSettings);
+      const content = INI.stringify(newSetting);
       writeFileSync(settingsPath, content, 'utf8');
       log.info('', `Generated settings.ini: ${settingsPath}`);
-      settings = newSettings;
+      settings = newSetting;
 
     } else {
 
       const content = readFileSync(settingsPath, 'utf8');
-      const newSettings = INI.stringify(content);
+      const newSettings = <ISettings> INI.parse(content);
       settings = newSettings;
 
     }
@@ -40,5 +61,5 @@ export function initialize() {
 }
 
 export function getSettings() {
-  return {...settings};
+  return settings;
 }
