@@ -7,7 +7,11 @@ import ServerStatus from "../model/ServerStatus";
 
 class RestClientV1 implements IRestClient {
 
-  private host = 'http://localhost:5420';
+  /* VPN */
+  private host = 'http://25.38.38.238:5420';
+
+  /* LOCAL */
+  // private host = 'http://localhost:5420';
 
   async createServer(srv: IServerIni, userProps: IServerProps): Promise<IServerConfig> {
     const body: IServerConfig = {
