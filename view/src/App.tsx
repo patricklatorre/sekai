@@ -105,7 +105,7 @@ function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) 
   }
 
   return (
-    <div className="w-100 max-w-3xl mx-auto">
+    <div className="w-100 max-w-4xl mx-auto">
         {/* SERVER LIST */}
         <div className="flex justify-center align-center mt-5 pt-1">
           <input
@@ -147,7 +147,7 @@ function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) 
                   </div>
 
                   <div className="flex flex-col justify-between items-end">
-                    <p className='text-gray-600 text-sm'>
+                    <p className='text-gray-600 text-xs'>
                       {toReadableName(srv.ini.templateName)}
                     </p>
                   </div>
