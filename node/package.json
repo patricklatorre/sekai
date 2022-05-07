@@ -1,6 +1,6 @@
 {
   "name": "sekai",
-  "version": "1.0.2",
+  "version": "0.2.2b",
   "description": "",
   "main": "index.js",
   "bin": "index.js",
