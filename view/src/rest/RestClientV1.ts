@@ -7,7 +7,8 @@ import ServerStatus from "../model/ServerStatus";
 
 class RestClientV1 implements IRestClient {
 
-  private host = `http://${window.location.host}`;
+  private host = window.location.origin;
+
 
   async createServer(srv: IServerIni, userProps: IServerProps): Promise<IServerConfig> {
     const body: IServerConfig = {
