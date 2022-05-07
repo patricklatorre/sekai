@@ -105,7 +105,7 @@ function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) 
   }
 
   return (
-    <div className="w-100 max-w-3xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
         {/* SERVER LIST */}
         <div className="flex justify-center align-center mt-5 pt-1">
           <input
@@ -122,7 +122,7 @@ function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) 
         <ul className='flex flex-wrap gap-2 mt-5 mx-4 justify-center align-center'>
           {
             filtered.map((srv, index) => (
-              <li key={srv.ini.id} className="py-3 px-5 bg-gray-400 text-gray-800 border border-black rounded shadow-md w-full max-w-md cursor-pointer opacity-80 hover:opacity-100"
+              <li key={srv.ini.id} className="py-3 px-5 bg-gray-400 text-gray-800 border border-black rounded shadow-md w-full max-w-lg cursor-pointer opacity-80 hover:opacity-100"
                 onClick={(event) => {
                   event.preventDefault();
                   navigate(`/server/${srv.ini.id}`);
@@ -140,14 +140,14 @@ function ServerListView(props: {restClient: IRestClient, srvs:IServerConfig[]}) 
                       <h6>
                         {srv.ini.name}
                       </h6>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-gray-500 text-xs truncate">
                         <em>{srv.props.motd}</em>
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-col justify-between items-end">
-                    <p className='text-gray-600 text-sm'>
+                    <p className='text-gray-600 text-sm text-right'>
                       {toReadableName(srv.ini.templateName)}
                     </p>
                   </div>

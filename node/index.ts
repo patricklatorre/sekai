@@ -44,6 +44,10 @@ server.use(express.json());
 server.use(express.static(staticPath));
 server.use(ServerController);
 
+server.get('/*', (req, res) => {
+  res.sendFile(staticPath + '/index.html');
+});
+
 const port = process.env.SEKAI_PORT || 5420;
 
 server.listen(port, async () => {
