@@ -1,8 +1,8 @@
-## Build
-```bash
-$ cd view && npm i && npm run build && \
-  cd ../node && npm i && npm run package
-```
+## Usage
+1. Run sekai.exe
+2. Add your server templates in `templates/`
+3. Add java runtimes to `java/`
+4. Visit http://localhost:5420
 
 ## Directories
 `java/` - Java runtimes. An instance can choose a specific runtime.
@@ -35,9 +35,8 @@ servers/
         ∟ ...
 ```
 
-## Usage
-1. Run sekai.exe
-2. Add your server templates in `templates/`
-3. Add java runtimes to `java/`
-4. Visit http://localhost:5420
-
+## Build
+```bash
+$ cd view && npm i && npm run build && \
+  cd ../node && npm i && npm run package
+```
